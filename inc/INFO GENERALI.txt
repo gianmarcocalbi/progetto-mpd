@@ -1,0 +1,4 @@
+PIR:
+	Un sensore ad infrarossi passivo (PIR sensor, acronimo di Passive InfraRed) è un sensore elettronico che misura i raggi infrarossi (IR) irradiati dagli oggetti nel suo campo di vista. Questi sensori sono molto usati come rilevatori di movimento. Un rilevatore di movimento che implementa i PIR, è usato per rilevare il movimento di persone, animali, o altri oggetti. Sono spesso usati in antifurti e sistemi di illuminazione automatizzati. Sono comunemente chiamati "PIR" o, qualche volta, "PID", acronimo di 'passive infrared detector'.
+
+ADLs: activities of daily living
