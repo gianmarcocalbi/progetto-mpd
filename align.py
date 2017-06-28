@@ -12,7 +12,7 @@ for line in f:
         line = re.sub("\\t+", ";", line)
         line = line[:-1]
         m = line.split(sep=";")
-        no_blankS.write(line + ';\n')
+        no_blankS.write(line + '\n')
         c.append(m)
     count += 1
 
