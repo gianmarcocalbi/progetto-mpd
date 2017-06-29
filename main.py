@@ -22,3 +22,8 @@ def main():
     list_sensorLTP = sensor_set[['Location','Type','Place']]
     list_sensorLTP.drop_duplicates(None,'first',True)
     print(list_sensorLTP)
+    
+    #Allineamento
+    for act in activities_set.iterrows():
+        print(act)
+        for sensD in sensor_set.iterrows():
