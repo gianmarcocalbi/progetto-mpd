@@ -10,7 +10,15 @@ def align(pathSensData, pathAct):
 
 def main():
     sensor_set, activities_set = align('inc/OrdonezA_Sensors.txt', 'inc/OrdonezA_ADLs.txt')
+    
+    #Salvataggio file .txt
     sensor_set.to_csv(r'no_blankSensors.txt', header=None, index=None, sep=' ', mode='a')
     activities_set.to_csv(r'no_blankActivities.txt', header=None, index=None, sep=' ', mode='a')
-    print(sensor_set)
-    print(activities_set)
+    
+    #Scarto tutte le attività duplicate
+    list_act = activities_set['Activity'].unique()
+    
+    #Scarto tutti i duplicati dai dati dei sensori
+    list_sensorLTP = sensor_set[['Location','Type','Place']]
+    list_sensorLTP.drop_duplicates(None,'first',True)
+    print(list_sensorLTP)
