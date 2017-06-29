@@ -60,17 +60,8 @@ def main():
         uniqueObs.append(tupla)
     uniqueObs = [list(x) for x in set(tuple(x) for x in uniqueObs)]
 
-
     print(uniqueAct)
     print(len(uniqueAct))
     print("\n")
     print(uniqueObs)
     print(len(uniqueObs))
-
-    #Scarto tutte le attività duplicate
-    list_act = activities_set[:]
-    
-    #Scarto tutti i duplicati dai dati dei sensori
-    
-    #Allineamento
-    
