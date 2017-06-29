@@ -7,7 +7,7 @@ import datetime
 import math
 import sys
 
-ACT_DICT = {
+OBS_DICT = {
     'Basin' : 0,
     'Bed' : 1,
     'Cabinet' : 2,
@@ -20,4 +20,17 @@ ACT_DICT = {
     'Shower' : 9,
     'Toaster' : 10,
     'Toilet' : 11
+}
+
+ACT_DICT = {
+    'Breakfast' : 0,
+    'Dinner' : 1,
+    'Grooming' : 2,
+    'Leaving' : 3,
+    'Lunch' : 4,
+    'Showering' : 5,
+    'Sleeping' : 6,
+    'Snack' : 7,
+    "Spare_Time/TV" : 8,
+    'Toileting' : 9
 }
