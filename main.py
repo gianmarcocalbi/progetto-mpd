@@ -15,7 +15,6 @@ def align(pathSensData, pathAct):
     c = []
     c1 = []
     count = 0
-    print(lenF)
     for line in f:
         if count != 0 and count != 1:
             line = re.sub("\\t+", ";", line)
