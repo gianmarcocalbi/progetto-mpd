@@ -7,6 +7,7 @@ import datetime
 import math
 import sys
 from sklearn import preprocessing 
+from sklearn.metrics import confusion_matrix
 
 OBS_DICT = {
     'Basin' : 0,
