@@ -1,6 +1,5 @@
 from import_me import *
 
-
 def timeStrToStamp(strtime):
     return int(time.mktime(datetime.datetime.strptime(strtime, "%Y-%m-%d %H:%M:%S").timetuple()))
 
@@ -99,7 +98,7 @@ def rawDataToJSON(pathRawSensData, pathRawActData):
         if k >= 0:
             curr_obj["act"] = ACT_DICT[action_set[k][2]]
         else:
-            curr_obj["act"] = -1
+            curr_obj["act"] = ACT_DICT["Idle/Unlabeled"]
     
         print(str.format("t->{0} - k={1} - x={2}", t, k, curr_obj))
     
@@ -121,18 +120,63 @@ def alignRawActData(pathRawActData):
                 for i in range(len(m)):
                     m[i] = m[i].strip().lstrip()
                 actData.append(m)
-            count += 1
+            count += 1       
             
     return actData
     
 
 def writeDataToFile():
+    jobj = rawDataToJSON('./raw_data/OrdonezA_Sensors.txt', './raw_data/OrdonezA_ADLs.txt')
     with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +".json", "w") as f:
         f.write(json.dumps(
-            rawDataToJSON('./raw_data/OrdonezA_Sensors.txt', './raw_data/OrdonezA_ADLs.txt')
-            #, separators=(",", ' : ')
+            jobj
+            , separators=(",", ':')
+        ))
+        
+    start_probs, trans_matrix = computeProbs(jobj)
+    with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +"_start_probs.json", "w") as f:
+        f.write(json.dumps(
+            start_probs
+            , separators=(",", ':')
+        ))
+    with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +"_trans_matrix.json", "w") as f:
+        f.write(json.dumps(
+            trans_matrix
+            , separators=(",", ':')
         ))
 
+def computeProbs(o):
+    act_count = numpy.zeros(12)
 
+    trans_count_matrix = numpy.zeros((12,12))
+
+    prev_act = -1
+    for x in o:
+        curr_act = x["act"]
+        act_count[curr_act] += 1
+        if prev_act != -1:
+            trans_count_matrix[prev_act][curr_act] = int(trans_count_matrix[prev_act][curr_act]+1)
+        prev_act = curr_act
+    
+    start_prob = preprocessing.normalize(act_count, norm='l1')
+        
+    trans_prob_matrix = preprocessing.normalize(trans_count_matrix, norm='l1')
+    
+    return start_prob, trans_prob_matrix
+    
 if __name__ == '__main__':
-    writeDataToFile()
+    #writeDataToFile()
+    with open("./refined_data/OrdonezA_refined_1498809985.json") as rawjson:
+        jobj = json.load(rawjson)
+        start_probs, trans_matrix = computeProbs(jobj)
+        #print()
+        with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +"_start_probs.json", "w") as f:
+            f.write(json.dumps(
+                start_probs.tolist()[0]
+                , separators=(",", ':')
+            ))
+        with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +"_trans_matrix.json", "w") as f:
+            f.write(json.dumps(
+                trans_matrix.tolist()
+                , separators=(",", ':')
+            ))
