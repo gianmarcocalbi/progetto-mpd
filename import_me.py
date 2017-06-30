@@ -67,3 +67,7 @@ ACT_DICT_REV = {
     10 : "Spare_Time/TV",
     11 : 'Toileting'
 }
+
+    
+def DecimalTo12bitArray(dec):
+    return list(map(int, list(bin(dec)[2:].zfill(12))))

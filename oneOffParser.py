@@ -37,12 +37,11 @@ def rawDataToJSON(pathRawSensData, pathRawActData):
     end_time = max(end_time_act, end_time_obs)
     
     for t in range(math.ceil((end_time-begin_time)/60)):
-        curr_obs = [0,0,0,0,0,0,0,0,0,0,0,0]
+        curr_obs = 0  #from binary array to decimal
         curr_max_act = {
             "j" : -1,
             "len" : 0
         }
-        or_bit = 0;
         
         for j in range(len(sensor_set)):
             j_begin_time = timeStrToStamp(sensor_set[j][0])
@@ -54,8 +53,7 @@ def rawDataToJSON(pathRawSensData, pathRawActData):
                 continue
         
             if t*60 <= j_begin_offset < (t+1)*60 or t*60 <= j_end_offset < (t+1)*60 or (j_begin_offset < t*60 and j_end_offset > (t+1)*60):
-                curr_obs[OBS_DICT[sensor_set[j][2]]] = 1
-                or_bit = 1
+                curr_obs += pow(2,OBS_DICT[sensor_set[j][2]])
         
         for j in range(len(action_set)):
             j_begin_time = timeStrToStamp(action_set[j][0])
@@ -90,7 +88,6 @@ def rawDataToJSON(pathRawSensData, pathRawActData):
         
         curr_obj = {
             #"begin_time" : t*60+begin_time,
-            "or_bit" : or_bit,
             "x" : curr_obs
         }
         
@@ -133,6 +130,7 @@ def writeDataToFile():
             , separators=(",", ':')
         ))
         
+    """
     start_probs, trans_matrix = computeProbs(jobj)
     with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +"_start_probs.json", "w") as f:
         f.write(json.dumps(
@@ -144,6 +142,7 @@ def writeDataToFile():
             trans_matrix
             , separators=(",", ':')
         ))
+    """
 
 def computeProbs(o):
     act_count = numpy.zeros(12)
@@ -164,8 +163,10 @@ def computeProbs(o):
     
     return start_prob, trans_prob_matrix
     
+
 if __name__ == '__main__':
-    #writeDataToFile()
+    writeDataToFile()
+    """
     with open("./refined_data/OrdonezA_refined_1498809985.json") as rawjson:
         jobj = json.load(rawjson)
         start_probs, trans_matrix = computeProbs(jobj)
@@ -180,3 +181,4 @@ if __name__ == '__main__':
                 trans_matrix.tolist()
                 , separators=(",", ':')
             ))
+    """

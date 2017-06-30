@@ -2,8 +2,21 @@ from import_me import *
 
 
 class Oraculum:
+    obs, states, start_p, trans_p, emit_p
     def __init__(self):
-    pass
+        obs = list(OBS_DICT.values())
+        states = list(ACT_DICT.values())
+        
+        with open("/refined_data/OrdonezA_refined_1498809985_start_probs.json") as f:
+            start_p = json.load(f)
+        
+        with open("/refined_data/OrdonezA_refined_1498809985_trans_matrix.json") as f:
+            trans_p = json.load(f)
+            
+        emit_p = {
+           'Healthy' : {'normal': 0.5, 'cold': 0.4, 'dizzy': 0.1},
+           'Fever' : {'normal': 0.1, 'cold': 0.3, 'dizzy': 0.6}
+        }
 
     def viterbi(obs, states, start_p, trans_p, emit_p):
         V = [{}]
@@ -20,7 +33,7 @@ class Oraculum:
                         V[t][st] = {"prob": max_prob, "prev": prev_st}
                         break
         for line in dptable(V):
-            print line
+            print(line)
         opt = []
         # The highest probability
         max_prob = max(value["prob"] for value in V[-1].values())
@@ -45,24 +58,6 @@ class Oraculum:
             yield "%.7s: " % state + " ".join("%.7s" % ("%f" % v[state]["prob"]) for v in V)
 
     
-obs = list(OBS_DICT.values())
-states = list(ACT_DICT.values())
-start_p = {
-    'Leaving': 0.0832, 
-    'Toileting': 0.0076,
-    'Showering' : 0.0054,
-    'Sleeping' : 0.391,
-    'Breakfast' : 0.0063,
-    'Dinner' : 0,
-    'Drink' : 0,
-    "Idle'/'Unlabeled" :  0.0561,
-    'Lunch' : 0.0159,
-    'Snack' : 0.0005,
-    "Sparetime'/'TV" : 0.427,
-    'Grooming' : 0.0070
-}
-trans_p = {}
-emit_p = {
-   'Healthy' : {'normal': 0.5, 'cold': 0.4, 'dizzy': 0.1},
-   'Fever' : {'normal': 0.1, 'cold': 0.3, 'dizzy': 0.6}
-   }
+
+   
+ 
