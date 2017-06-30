@@ -53,7 +53,7 @@ def rawDataToJSON(pathRawSensData, pathRawActData):
                 continue
         
             if t*60 <= j_begin_offset < (t+1)*60 or t*60 <= j_end_offset < (t+1)*60 or (j_begin_offset < t*60 and j_end_offset > (t+1)*60):
-                curr_obs += pow(2,OBS_DICT[sensor_set[j][2]])
+                curr_obs += pow(2,abs(OBS_DICT[sensor_set[j][2]] - 11))
         
         for j in range(len(action_set)):
             j_begin_time = timeStrToStamp(action_set[j][0])
@@ -129,8 +129,7 @@ def writeDataToFile():
             jobj
             , separators=(",", ':')
         ))
-        
-    """
+    
     start_probs, trans_matrix = computeProbs(jobj)
     with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +"_start_probs.json", "w") as f:
         f.write(json.dumps(
@@ -142,12 +141,26 @@ def writeDataToFile():
             trans_matrix
             , separators=(",", ':')
         ))
-    """
+
 
 def computeProbs(o):
     act_count = numpy.zeros(12)
 
     trans_count_matrix = numpy.zeros((12,12))
+
+    """
+    {
+        "Drink" : {
+            255 : # di volte che per drink si hanno le oss #255
+        },
+        #etc.. per tutte le altre azioni
+    }
+    """
+    
+    emiss_count_matrix = [
+        {},{},{},{},{},{},{},{},{},{},{},{}
+    ]
+    
 
     prev_act = -1
     for x in o:
@@ -156,21 +169,40 @@ def computeProbs(o):
         if prev_act != -1:
             trans_count_matrix[prev_act][curr_act] = int(trans_count_matrix[prev_act][curr_act]+1)
         prev_act = curr_act
-    
+        
+        curr_obs = x["x"]
+        
+        if curr_obs not in emiss_count_matrix[curr_act]:
+            emiss_count_matrix[curr_act][curr_obs] = 1
+        else:
+            emiss_count_matrix[curr_act][curr_obs] += 1
+           
     start_prob = preprocessing.normalize(act_count, norm='l1')
         
     trans_prob_matrix = preprocessing.normalize(trans_count_matrix, norm='l1')
     
-    return start_prob, trans_prob_matrix
+    for act in emiss_count_matrix:
+        act_tot = 0
+        for obs_key in act:
+            act_tot += act[obs_key]
+        if act_tot != 0:
+            for obs_key in act:
+                act[obs_key] /= act_tot
+    
+    emiss_prob_matrix = emiss_count_matrix
+    
+    return start_prob, trans_prob_matrix, emiss_prob_matrix
     
 
 if __name__ == '__main__':
-    writeDataToFile()
-    """
-    with open("./refined_data/OrdonezA_refined_1498809985.json") as rawjson:
+    
+    #writeDataToFile()
+    
+    with open("./refined_data/OrdonezA_refined_1498825820.json") as rawjson:
         jobj = json.load(rawjson)
-        start_probs, trans_matrix = computeProbs(jobj)
+        start_probs, trans_matrix, emiss_matrix = computeProbs(jobj)
         #print()
+        """
         with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +"_start_probs.json", "w") as f:
             f.write(json.dumps(
                 start_probs.tolist()[0]
@@ -181,4 +213,10 @@ if __name__ == '__main__':
                 trans_matrix.tolist()
                 , separators=(",", ':')
             ))
-    """
+        """
+        with open("./refined_data/OrdonezA_refined_" + str(int(time.time())) +"_emiss_matrix.json", "w") as f:
+            f.write(json.dumps(
+                emiss_matrix
+                , separators=(",", ':')
+            ))
+    
