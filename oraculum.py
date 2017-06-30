@@ -90,11 +90,15 @@ def viterbi(prior, given_obs, trans_mat, obs_mat):
                     
                 p.append(max_p)
                 most_likely_mat[t].append(max_j)
-            prev_p = p
-            if sum(prev_p) == 0:
+            if sum(p) == 0:
+                print(most_likely_mat[t])
+                print(prev_p)
+                print(p)
                 print("There's no most likely sequence :( [t=" + str(t) + "]")
                 exit()
                 return None
+            prev_p = p
+            
             #print(str.format("t={0} -> p={1}", t, prev_p))
     
     #print(most_likely_mat)
@@ -202,7 +206,7 @@ if __name__ == '__main__':
     
     print(numActArrayToStrActArray(viterbi(
         orac.start_p,
-        x,
+        x[0:1440],
         orac.trans_p,
         orac.emiss_p
     )))
