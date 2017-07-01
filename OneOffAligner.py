@@ -144,7 +144,7 @@ def writeDataToFile():
 
 
 if __name__ == '__main__':
-    C = 'A' # A o B
+    C = 'B' # A o B
     
     writeDataToFile()
     #print(alignRawActData('./raw_data/OrdonezA_ADLs.txt'))
