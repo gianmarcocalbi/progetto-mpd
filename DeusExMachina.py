@@ -360,7 +360,7 @@ def numActArrayToStrActArray(numActArray):
 
 
 if __name__ == '__main__':
-    C = 'A'
+    C = 'B'
     
     print(CrossValidation())
     #dataset = loadJsonDataSet()
