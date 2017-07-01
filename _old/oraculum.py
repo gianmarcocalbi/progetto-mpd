@@ -8,20 +8,20 @@ class Oraculum:
         self.states = list(ACT_DICT.values())
         c = c.upper()
         
-        with open(str.format("./refined_data/Ordonez{0}_refined_start_probs.json", c)) as f:
+        with open(str.format("../refined_data/_old/Ordonez{0}_refined_start_probs.json", c)) as f:
             self.start_p = numpy.asarray(json.load(f))
             
-        with open(str.format("./refined_data/Ordonez{0}_refined_trans_matrix.json", c)) as f:
+        with open(str.format("../refined_data/_old/Ordonez{0}_refined_trans_matrix.json", c)) as f:
             self.trans_p = numpy.asarray(json.load(f))
             
-        with open(str.format("./refined_data/Ordonez{0}_refined_emiss_matrix.json", c)) as f:
+        with open(str.format("../refined_data/_old/Ordonez{0}_refined_emiss_matrix.json", c)) as f:
             self.emiss_p = json.load(f)
     
     def extractXandAct(self, c='A'):
         c = c.upper()
         x = []
         act = []
-        with open(str.format("./refined_data/OrdonezA_refined.json", c)) as f:
+        with open(str.format("../refined_data/_old/OrdonezA_refined.json", c)) as f:
             data = json.load(f)
             for el in data:
                 x.append(el["x"])
@@ -47,22 +47,22 @@ def viterbi(prior, given_obs, trans_mat, obs_mat):
                     prev_p.append(prior[i] * obs_mat[i][str(given_obs[0])])
                 else:
                     prev_p.append(0)
-            #print(str.format("t={0} -> p={1}", t, prev_p))
+            print(str.format("t={0} -> p={1}", t, prev_p))
         else:
             p = []
             
             # passo iterativo
-            # per ogni azione (cioè per ogni stato dell'HMM)
+            # per ogni azione (cioe' per ogni stato dell'HMM)
             for i in range(len(prior)):
                 # i -> indice che identifica lo stato corrente (in cui arrivo)
                 max_p = 0
                 max_j = 0
                 
-                # se l'osservazione corrente non è presente come chiave nella
+                # se l'osservazione corrente non e' presente come chiave nella
                 # matrice sparsa delle osservazioni, vuol dire che la prob
-                # di osservarla nello stato corrente è uguale a 0, quindi devp
-                # considerare solo i casi in cui tale probabilità è invece > 0
-                # ovvero quanto l'osservazione è presente come chiave nella matr
+                # di osservarla nello stato corrente e' uguale a 0, quindi devp
+                # considerare solo i casi in cui tale probabilita' e' invece > 0
+                # ovvero quanto l'osservazione e' presente come chiave nella matr
                 # delle osservazioni
                 if str(given_obs[t]) in obs_mat[i]:
                     # prob di osservare l'osservazione corrente given_obs[t]
@@ -70,7 +70,7 @@ def viterbi(prior, given_obs, trans_mat, obs_mat):
                     # obs_mat[i][given_obs[t]] = P(i|E)
                     curr_state_prob = obs_mat[i][str(given_obs[t])]
                 
-                    # però posso arrivare in questo stato da 12 stati diversi
+                    # pero' posso arrivare in questo stato da 12 stati diversi
                     for j in range(len(prior)):
                         # j -> indice che identifica lo stato dal quale arrivo
                         
@@ -81,7 +81,7 @@ def viterbi(prior, given_obs, trans_mat, obs_mat):
                         # prev_p[j] = P(j)
                         curr_p = curr_state_prob * prev_p[j] * trans_mat[j][i]
                         
-                        # se la prob trovata è massima per lo stato i-esimo allora la setto
+                        # se la prob trovata e' massima per lo stato i-esimo allora la setto
                         # come prob massima corrente
                         if curr_p > max_p:
                             max_p = curr_p
@@ -99,9 +99,9 @@ def viterbi(prior, given_obs, trans_mat, obs_mat):
                 return None
             prev_p = p
             
-            #print(str.format("t={0} -> p={1}", t, prev_p))
+            print(str.format("t={0} -> p={1}", t, prev_p))
     
-    #print(most_likely_mat)
+    print(most_likely_mat)
     #print(prev_p.index(max(prev_p)))
     
     most_likely_seq.append(prev_p.index(max(prev_p)))

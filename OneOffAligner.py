@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from _header_ import *
 
 def timeStrToStamp(strtime):
