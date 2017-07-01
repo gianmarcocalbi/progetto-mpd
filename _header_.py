@@ -7,8 +7,10 @@ import time
 import datetime
 import math
 import sys
-from sklearn import preprocessing 
-from sklearn.metrics import confusion_matrix
+from sklearn import preprocessing
+from operator import add
+import warnings
+warnings.filterwarnings("ignore")
 
 OBS_DICT = {
     'Basin' : 0,

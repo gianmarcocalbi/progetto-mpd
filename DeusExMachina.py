@@ -55,12 +55,24 @@ def CrossValidation():
     dataset = loadJsonDataSet()
     
     days_amount = 14
+    cmxs = []
     
     for gg in range(1,days_amount+1):
         PI, T, O, E, X = train(dataset, gg)
-        evalPerformance(PI, T, O, E, X)
+        cmxs.append(evalPerformance(PI, T, O, E, X))
     
-    return {} # oggetto da parsare per valutazione performance
+    avg_cmx = numpy.zeros((len(ACT_DICT), len(ACT_DICT)))
+    
+    for cmx in cmxs:
+        avg_cmx = numpy.add(avg_cmx,cmx)
+    
+    avg_cmx = numpy.divide(avg_cmx, len(ACT_DICT))
+    
+    TP = 0
+    for i in range(len(ACT_DICT)):
+        TP += avg_cmx[i,i]
+    
+    return TP / numpy.sum(avg_cmx)
 
 
 #test_gg deve essere un numero compreso fra 1 e 14 per OrdonezA
@@ -146,19 +158,24 @@ def evalPerformance(PI, T, O, E, X):
     
     mls = viterbi(PI, T, O, E)
     
-    print(len(E))
-    exit()
-    
     if len(X) != len(mls):
         raise Exception("Performance eval failed")
         exit()
-        
-    CM = confusion_matrix(X, mls)
     
-    print(CM)
-    input()
+    cmx = confusion_matrix(X, mls)
+    return cmx
     
-    return
+
+def confusion_matrix(expected, predicted):
+    if len(expected) != len(predicted):
+        raise Exception("I and J have diffent length in confusion_matrix(I,J)")
+    
+    mtx = numpy.zeros((len(ACT_DICT), len(ACT_DICT)))
+    
+    for i in range(len(expected)):
+        mtx[expected[i], predicted[i]] += 1
+    
+    return mtx
 
 
 def viterbi(PI, T, O, E):
@@ -260,7 +277,6 @@ def viterbi(PI, T, O, E):
         k+=1
         
     return most_likely_seq[::-1]
-    
 
 
 #funzione per testare l'algoritmo di Viterbi 
@@ -333,6 +349,7 @@ def viterbiTest(test_index=0):
 
     print(viterbi(PI,T,O,E))
 
+
 def numActArrayToStrActArray(numActArray):
     if numActArray == None:
         return []
@@ -343,12 +360,13 @@ def numActArrayToStrActArray(numActArray):
 
 
 if __name__ == '__main__':
-
-    dataset = loadJsonDataSet()
-    PI, T, O, E, X = train(dataset, 11)
+    
+    print(CrossValidation())
+    #dataset = loadJsonDataSet()
+    #PI, T, O, E, X = train(dataset, 11)
     
     #print(str.format("lengths --> PI={0}; T={1}; O={2}; E={3}; X={4}", len(PI), len(T), len(O), len(E), len(X)))
     #E, X = extractEandX(dataset)
     
-    mls = viterbi(PI, T, O, E)
-    print(numActArrayToStrActArray(mls))
+    #mls = viterbi(PI, T, O, E)
+    #print(numActArrayToStrActArray(mls))
