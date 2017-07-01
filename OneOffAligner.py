@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from _header_ import *
 
+C = 'A'
+C = C.upper()
+
 def timeStrToStamp(strtime):
     return int(time.mktime(datetime.datetime.strptime(strtime, "%Y-%m-%d %H:%M:%S").timetuple()))
 
@@ -18,6 +21,8 @@ def alignRawSensData(pathRawSensData):
                 m = line.split(sep=";")
                 for i in range(len(m)):
                     m[i] = m[i].strip().lstrip()
+                if m[2] == "Door":
+                    m[2] += " " + m[4]
                 sensData.append(m)
             count += 1
     
@@ -32,7 +37,8 @@ def alignRawActData(pathRawActData):
         for line in f:
             if count != 0 and count != 1:
                 line = re.sub("\\t+", ";", line)
-                line = line[:-1]
+                if(line[-1:] == "\n"):
+                    line = line[:-1]
                 m = line.split(sep=";")
                 for i in range(len(m)):
                     m[i] = m[i].strip().lstrip()
@@ -43,6 +49,8 @@ def alignRawActData(pathRawActData):
 
 
 def rawDataToJSON(pathRawSensData, pathRawActData):
+    global C
+    
     sensor_set = alignRawSensData(pathRawSensData)
     action_set = alignRawActData(pathRawActData)
     obsact = []
@@ -72,7 +80,7 @@ def rawDataToJSON(pathRawSensData, pathRawActData):
                 continue
         
             if t*60 <= j_begin_offset < (t+1)*60 or t*60 <= j_end_offset < (t+1)*60 or (j_begin_offset < t*60 and j_end_offset > (t+1)*60):
-                curr_obs += pow(2,abs(OBS_DICT[sensor_set[j][2]] - 11))
+                curr_obs += pow(2,abs(OBS_DICT[C][sensor_set[j][2]] - 11))
         
         for j in range(len(action_set)):
             j_begin_time = timeStrToStamp(action_set[j][0])
@@ -125,8 +133,8 @@ def rawDataToJSON(pathRawSensData, pathRawActData):
 
     
 
-def writeDataToFile(C = 'A'):
-    C = C.upper()
+def writeDataToFile():
+    global C
     jobj = rawDataToJSON("./raw_data/Ordonez" + C + "_Sensors.txt", "./raw_data/Ordonez" + C + "_ADLs.txt")
     with open("./refined_data/Ordonez" + C + "_refined_" + str(int(time.time())) +".json", "w") as f:
         f.write(json.dumps(
@@ -136,6 +144,7 @@ def writeDataToFile(C = 'A'):
 
 
 if __name__ == '__main__':
+    C = 'A' # A o B
     
     writeDataToFile()
     #print(alignRawActData('./raw_data/OrdonezA_ADLs.txt'))

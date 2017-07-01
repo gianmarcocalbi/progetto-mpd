@@ -54,7 +54,7 @@ def extractEandX(dataset):
 def CrossValidation():
     dataset = loadJsonDataSet()
     
-    days_amount = 14
+    days_amount = 21  # !!! DA CAMBIARE IN BASE A QUALE Ordonez SI STA VALUTANDO
     cmxs = []
     
     for gg in range(1,days_amount+1):
@@ -360,6 +360,7 @@ def numActArrayToStrActArray(numActArray):
 
 
 if __name__ == '__main__':
+    C = 'A'
     
     print(CrossValidation())
     #dataset = loadJsonDataSet()
