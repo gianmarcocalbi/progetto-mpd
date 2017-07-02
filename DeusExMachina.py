@@ -2,15 +2,6 @@
 from _header_ import *
 
 """
-Quello che dice il mudo:
-
-La procedura di stima dei parametri è OK (neanche loro hanno usato baum-welch)
-Viterbi è OK
-
-La procedura di "previsione" e test manca. Ecco cosa bisognerebbe fare:
-=> Valutazione della performance del modello sulla previsione di una giornata
-    di attività di una persona. Test Evaluation blabla
-
 for i da 1 a N=# di giorni nel SET (OrdonezA) # sono 14 giorni mi sembra
     gg = giorno i-esimo
     # il giorno gg diventa il candidato per il test-set
@@ -31,7 +22,7 @@ faccio la media delle perf. evaluation e così ottengo l'evaluation dell'HMM sul
 set OrdonezA su un task di "previsione" della durata di un giorno
 """
 
-C = 'A'
+C = 'B' # non modificare qui ma in fondo al file
 C = C.upper()
 
 def loadJsonDataSet():
@@ -54,12 +45,23 @@ def extractEandX(dataset):
 def CrossValidation():
     dataset = loadJsonDataSet()
     
-    days_amount = 21  # !!! DA CAMBIARE IN BASE A QUALE Ordonez SI STA VALUTANDO
+    days_amount = 21
+    
+    if C == 'A':
+        days_amount = 14
+        
     cmxs = []
     
     for gg in range(1,days_amount+1):
         PI, T, O, E, X = train(dataset, gg)
-        cmxs.append(evalPerformance(PI, T, O, E, X))
+        mls = viterbi(PI, T, O, E)
+    
+        if len(X) != len(mls):
+            raise Exception("Performance eval failed")
+            exit()
+        
+        cmx = confusion_matrix(X, mls)
+        cmxs.append(cmx)
     
     avg_cmx = numpy.zeros((len(ACT_DICT), len(ACT_DICT)))
     
@@ -68,11 +70,9 @@ def CrossValidation():
     
     avg_cmx = numpy.divide(avg_cmx, len(ACT_DICT))
     
-    TP = 0
-    for i in range(len(ACT_DICT)):
-        TP += avg_cmx[i,i]
+    return evalPerformance(avg_cmx)
     
-    return TP / numpy.sum(avg_cmx)
+    
 
 
 #test_gg deve essere un numero compreso fra 1 e 14 per OrdonezA
@@ -108,7 +108,7 @@ def train(dataset, test_gg):
         
         # salta le istanze del giorno di test (test_gg)
         if gg_count != test_gg:
-            # incrementa il conteggio dell'azione corrente di 1
+            # incrementa il conteggio dell'attività corrente di 1
             PI[curr_act] += 1
             
             # se prev_act == -1 allora si tratta del primo item del dataset
@@ -154,21 +154,63 @@ def train(dataset, test_gg):
     return PI, T, O, E, X
 
 
-def evalPerformance(PI, T, O, E, X):
+def evalPerformance(cmx):
+    N = len(ACT_DICT)
+    sensitivity = numpy.zeros(N)
+    specificity = numpy.zeros(N)
+    precision = numpy.zeros(N)
+    accuracy = numpy.zeros(N)
+    f_measure = numpy.zeros(N)
+    tot_accuracy = 0
+    tot_f_measure = 0
     
-    mls = viterbi(PI, T, O, E)
+    TP = numpy.zeros(N)
+    FP = numpy.zeros(N)
+    TN = numpy.zeros(N)
+    FN = numpy.zeros(N)
+        
+    for i in range(N):
+        TP[i] = cmx[i,i]
+        FP[i] = numpy.sum(cmx[[i],:])-TP[i]
+        FN[i] = numpy.sum(cmx[:,[i]])-TP[i]
+        TN[i] = numpy.sum(numpy.delete(numpy.delete(cmx,(i),axis=1),(i),axis=0))
     
-    if len(X) != len(mls):
-        raise Exception("Performance eval failed")
-        exit()
+    for i in range(N):
+        sensitivity[i] = TP[i]/(TP[i]+FN[i])
+        specificity[i] = TN[i]/(TN[i]+FP[i])
+        precision[i] = TP[i]/(TP[i]+FP[i])
+        accuracy[i] = (TP[i]+TN[i])/(TP[i]+FN[i]+TN[i]+FP[i])
+        if numpy.isnan(sensitivity[i]):
+            sensitivity[i] = 0
+        if numpy.isnan(specificity[i]):
+            specificity[i] = 0
+        if numpy.isnan(precision[i]):
+            precision[i] = 0
+        if numpy.isnan(accuracy[i]):
+            accuracy[i] = 0
+        f_measure[i] = (2*precision[i]*sensitivity[i])/(precision[i]+sensitivity[i])
+        if numpy.isnan(f_measure[i]):
+            f_measure[i] = 0
+        else:
+            tot_f_measure += f_measure[i]
     
-    cmx = confusion_matrix(X, mls)
-    return cmx
+    tot_f_measure /= N
+    
+    #tot_sensitivity = numpy.sum(TP)/(numpy.sum(TP)+numpy.sum(FN))
+    #tot_specificity = numpy.sum(TN)/(numpy.sum(TN)+numpy.sum(FP))
+    #tot_precision = numpy.sum(TP)/(numpy.sum(TP)+numpy.sum(FP))
+    
+    if numpy.sum(cmx)!=0:
+        tot_accuracy = numpy.sum(TP)/numpy.sum(cmx)
+    else:
+        tot_accuracy = 0    
+    
+    return accuracy, precision, sensitivity, specificity, tot_accuracy, tot_f_measure
     
 
 def confusion_matrix(expected, predicted):
     if len(expected) != len(predicted):
-        raise Exception("I and J have diffent length in confusion_matrix(I,J)")
+        raise Exception("I and J have different length in confusion_matrix(I,J)")
     
     mtx = numpy.zeros((len(ACT_DICT), len(ACT_DICT)))
     
@@ -252,13 +294,6 @@ def viterbi(PI, T, O, E):
                 
                 p.append(max_p)
                 most_likely_mat[t].append(max_j)
-                
-        if sum(p) == 0 and False:
-            #print(most_likely_mat[t])
-            print(prev_p)
-            print(p)
-            print("There's no most likely sequence :( [t=" + str(t) + "]")
-            return 0
         
         prev_p = p
         
@@ -279,9 +314,13 @@ def viterbi(PI, T, O, E):
     return most_likely_seq[::-1]
 
 
-#funzione per testare l'algoritmo di Viterbi 
+# Funzione per testare l'algoritmo di Viterbi con problemi 
+# svolti in classe la cui soluzione è nota
 def viterbiTest(test_index=0):
-    PI = T = O = E = None
+    PI = None
+    T = None
+    O = None
+    E = None
     if test_index == 1:
         X = [1,0,1,0,1,0]
         PI = [0.5, 0.5]
@@ -362,7 +401,25 @@ def numActArrayToStrActArray(numActArray):
 if __name__ == '__main__':
     C = 'B'
     
-    print(CrossValidation())
+    accuracy, precision, sensitivity, specificity, tot_accuracy, tot_f_measure = CrossValidation()
+    
+    print("------------")
+    print("SET : ", C)
+    print("------------")
+    print("ACCURACY VECTOR:")
+    print(accuracy , "\n")
+    print("PRECISION VECTOR:")
+    print(precision,"\n")
+    print("SENSITIVITY VECTOR:")
+    print(sensitivity, "\n")
+    print("SPECIFICITY VECTOR:")
+    print(specificity,"\n")
+    print("TOTAL ACCURACY:")
+    print(tot_accuracy, "\n")
+    print("TOTAL F-MEASURE:")
+    print(tot_f_measure)
+    print("------------")
+    
     #dataset = loadJsonDataSet()
     #PI, T, O, E, X = train(dataset, 11)
     

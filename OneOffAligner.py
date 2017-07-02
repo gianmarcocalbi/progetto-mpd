@@ -8,7 +8,7 @@ def timeStrToStamp(strtime):
     return int(time.mktime(datetime.datetime.strptime(strtime, "%Y-%m-%d %H:%M:%S").timetuple()))
 
 
-def alignRawSensData(pathRawSensData):
+def parseRawSensData(pathRawSensData):
     sensData = []
     
     with open(pathRawSensData, "r") as f:
@@ -29,7 +29,7 @@ def alignRawSensData(pathRawSensData):
     return sensData 
 
 
-def alignRawActData(pathRawActData):
+def parseRawActData(pathRawActData):
     actData = []
     
     with open(pathRawActData, "r") as f:
@@ -48,11 +48,11 @@ def alignRawActData(pathRawActData):
     return actData
 
 
-def rawDataToJSON(pathRawSensData, pathRawActData):
+def alignData(pathRawSensData, pathRawActData):
     global C
     
-    sensor_set = alignRawSensData(pathRawSensData)
-    action_set = alignRawActData(pathRawActData)
+    sensor_set = parseRawSensData(pathRawSensData)
+    action_set = parseRawActData(pathRawActData)
     obsact = []
    
     begin_time_obs = timeStrToStamp(sensor_set[0][0])
@@ -135,7 +135,7 @@ def rawDataToJSON(pathRawSensData, pathRawActData):
 
 def writeDataToFile():
     global C
-    jobj = rawDataToJSON("./raw_data/Ordonez" + C + "_Sensors.txt", "./raw_data/Ordonez" + C + "_ADLs.txt")
+    jobj = alignData("./raw_data/Ordonez" + C + "_Sensors.txt", "./raw_data/Ordonez" + C + "_ADLs.txt")
     with open("./refined_data/Ordonez" + C + "_refined_" + str(int(time.time())) +".json", "w") as f:
         f.write(json.dumps(
             jobj
@@ -147,5 +147,5 @@ if __name__ == '__main__':
     C = 'B' # A o B
     
     writeDataToFile()
-    #print(alignRawActData('./raw_data/OrdonezA_ADLs.txt'))
-    #alignRawSensData('./raw_data/OrdonezA_Sensors.txt')
+    #print(parseRawActData('./raw_data/OrdonezA_ADLs.txt'))
+    #parseRawSensData('./raw_data/OrdonezA_Sensors.txt')
